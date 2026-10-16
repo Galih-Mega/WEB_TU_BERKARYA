@@ -227,8 +227,10 @@
     </div>
 
     <!-- SCRIPT LOGIC (Firebase Config & PDF) -->
+   <!-- SCRIPT LOGIC (Dinamisasi KOP dari Firebase) -->
+<!-- SCRIPT LOGIC (Dinamisasi KOP dari Firebase) -->
     <script>
-        // Konfigurasi Firebase Asli milik Anda
+        // Konfigurasi Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyChProPa4KoNjhCjt8npMg08yWWhJ5iZEw",
             authDomain: "tu-berkarya.firebaseapp.com",
@@ -241,6 +243,29 @@
         // Inisialisasi Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
+
+        // 1. OTO-LOAD DAFTAR SEKOLAH DARI FIREBASE KE DROPDOWN PPDB
+        async function loadDaftarSekolah() {
+            const selectTujuan = document.getElementById('in-tujuan');
+            try {
+                const snapshot = await db.collection("sekolah").get();
+                if(!snapshot.empty) {
+                    selectTujuan.innerHTML = '<option value="">Pilih Sekolah Tujuan...</option>';
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        const option = document.createElement('option');
+                        option.value = doc.id; // Menyimpan ID/Nama Sekolah
+                        option.textContent = data.nama || doc.id;
+                        selectTujuan.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error("Gagal memuat daftar sekolah: ", error);
+            }
+        }
+
+        // Jalankan pemuatan daftar sekolah saat halaman selesai dimuat
+        window.addEventListener('DOMContentLoaded', loadDaftarSekolah);
 
         function openModal(id) {
             document.getElementById('main-content').classList.add('opacity-0', 'pointer-events-none');
@@ -273,37 +298,6 @@
             }
         }
 
-        const kopData = {
-            "SDN Gambirono 01": {
-                instansi: "PEMERINTAH KABUPATEN JEMBER",
-                nama: "SEKOLAH DASAR NEGERI GAMBIRONO 01",
-                npsn_nss: "NPSN : 205XXXXX NSS: 1010XXXXXXXX",
-                alamat: "Jl. Krajan, Desa Gambirono, Kec. Bangsalsari, Kab. Jember",
-                email: "sdngambirono01@gmail.com"
-            },
-            "SDN Gambirono 02": {
-                instansi: "PEMERINTAH KABUPATEN JEMBER",
-                nama: "SEKOLAH DASAR NEGERI GAMBIRONO 02",
-                npsn_nss: "NPSN : 205XXXXX NSS: 1010XXXXXXXX",
-                alamat: "Jl. Curahdami, Desa Gambirono, Kec. Bangsalsari, Kab. Jember",
-                email: "sdngambirono02@gmail.com"
-            },
-            "SDN Gambirono 03": {
-                instansi: "PEMERINTAH KABUPATEN JEMBER",
-                nama: "SEKOLAH DASAR NEGERI GAMBIRONO 03",
-                npsn_nss: "NPSN : 20524754 NSS: 101052405026",
-                alamat: "Jl. Kasiyan No 14 Gambirono Kec. Bangsalsari Kab. Jember",
-                email: "uptdsatdiksdngambirono03@gmail.com"
-            },
-            "SDN Jember Lor 01": {
-                instansi: "PEMERINTAH KABUPATEN JEMBER",
-                nama: "SEKOLAH DASAR NEGERI JEMBER LOR 01",
-                npsn_nss: "NPSN : 205XXXXX NSS: 1010XXXXXXXX",
-                alamat: "Jl. PB Sudirman No. 12, Kec. Patrang, Kab. Jember",
-                email: "sdnjemberlor01@gmail.com"
-            }
-        };
-
         async function generatePDF(e) {
             e.preventDefault(); 
             
@@ -325,10 +319,30 @@
 
             const btn = document.getElementById('btn-submit');
             const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Menyimpan data & membuat PDF...';
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Mengambil data KOP & membuat PDF...';
             btn.disabled = true;
 
-            // 1. SIMPAN DATA KE FIREBASE FIRESTORE
+            // 1. AMBIL DATA KOP SEKOLAH DARI FIREBASE FIRESTORE
+            let selectedKop = {
+                instansi: "PEMERINTAH KABUPATEN JEMBER",
+                nama: tujuan.toUpperCase(),
+                npsn_nss: "NPSN : - NSS: -",
+                alamat: "Alamat Sekolah",
+                email: "emailsekolah@gmail.com",
+                logo_kiri: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Lambang_Kabupaten_Jember.png/411px-Lambang_Kabupaten_Jember.png",
+                logo_kanan: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Logo_of_Ministry_of_Education_and_Culture_of_Republic_of_Indonesia.svg/400px-Logo_of_Ministry_of_Education_and_Culture_of_Republic_of_Indonesia.svg.png"
+            };
+
+            try {
+                const sekolahDoc = await db.collection("sekolah").doc(tujuan).get();
+                if(sekolahDoc.exists) {
+                    selectedKop = sekolahDoc.data();
+                }
+            } catch (err) {
+                console.warn("Gagal mengambil data KOP dari Firebase, menggunakan fallback:", err);
+            }
+
+            // 2. SIMPAN DATA PENDAFTARAN KE FIREBASE FIRESTORE
             try {
                 await db.collection("pendaftaran_ppdb").add({
                     no_registrasi: noRegistrasi,
@@ -346,20 +360,11 @@
                     asal_tk: tk,
                     tanggal_daftar: new Date().toISOString()
                 });
-                console.log("Data berhasil tersimpan di Firebase!");
             } catch (error) {
                 console.error("Gagal menyimpan ke Firebase: ", error);
             }
 
-            // 2. GENERATE PDF BUKTI PENDAFTARAN
-            const selectedKop = kopData[tujuan] || {
-                instansi: "PEMERINTAH KABUPATEN",
-                nama: tujuan.toUpperCase(),
-                npsn_nss: "NPSN : - NSS: -",
-                alamat: "Alamat Sekolah",
-                email: "emailsekolah@gmail.com"
-            };
-
+            // 3. GENERATE PDF BUKTI PENDAFTARAN
             const pdfContainer = document.createElement('div');
             pdfContainer.style.width = '800px';
             pdfContainer.style.padding = '40px';
@@ -371,7 +376,7 @@
                 <table style="width: 100%; border-bottom: 3px solid black; padding-bottom: 5px; margin-bottom: 2px;">
                     <tr>
                         <td style="width: 15%; text-align: center; vertical-align: middle;">
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Lambang_Kabupaten_Jember.png/411px-Lambang_Kabupaten_Jember.png" style="width: 75px; height: auto;">
+                            <img src="${selectedKop.logo_kiri}" style="width: 75px; height: auto;">
                         </td>
                         <td style="width: 70%; text-align: center; font-family: 'Times New Roman', Times, serif; line-height: 1.2;">
                             <div style="font-size: 16px; font-weight: bold;">${selectedKop.instansi}</div>
@@ -381,7 +386,7 @@
                             <div style="font-size: 13px;">Email : <span style="color: blue; text-decoration: underline;">${selectedKop.email}</span></div>
                         </td>
                         <td style="width: 15%; text-align: center; vertical-align: middle;">
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Logo_of_Ministry_of_Education_and_Culture_of_Republic_of_Indonesia.svg/400px-Logo_of_Ministry_of_Education_and_Culture_of_Republic_of_Indonesia.svg.png" style="width: 75px; height: auto;">
+                            <img src="${selectedKop.logo_kanan}" style="width: 75px; height: auto;">
                         </td>
                     </tr>
                 </table>
@@ -466,7 +471,7 @@
             html2pdf().set(opt).from(pdfContainer).save().then(() => {
                 btn.innerHTML = originalText;
                 btn.disabled = false;
-                alert('Pendaftaran Berhasil! Data tersimpan di database dan bukti pendaftaran (PDF) berhasil diunduh.');
+                alert('Pendaftaran Berhasil! Bukti pendaftaran (PDF) berhasil diunduh.');
                 document.getElementById('form-ppdb').reset(); 
             });
         }
