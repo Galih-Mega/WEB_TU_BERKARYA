@@ -373,23 +373,26 @@
             pdfContainer.style.fontFamily = 'Arial, sans-serif';
 
             pdfContainer.innerHTML = `
-               <table style="width: 100%; border-bottom: 3px solid black; padding-bottom: 5px; margin-bottom: 2px;">
-    <tr>
-        <td style="width: 12%; text-align: center; vertical-align: middle;">
-            <img src="${selectedKop.logo_kiri}" style="width: 70px; height: auto;">
-        </td>
-        <td style="width: 76%; text-align: center; font-family: 'Times New Roman', Times, serif; line-height: 1.2;">
-            <div style="font-size: 16px; font-weight: bold;">${selectedKop.instansi}</div>
-            <div style="font-size: 18px; font-weight: bold;">${selectedKop.nama}</div>
-            <div style="font-size: 14px; font-weight: bold;">${selectedKop.npsn_nss}</div>
-            <div style="font-size: 13px;">Alamat : ${selectedKop.alamat}</div>
-            <div style="font-size: 13px;">Email : <span style="color: blue; text-decoration: underline;">${selectedKop.email}</span></div>
-        </td>
-        <td style="width: 12%; text-align: center; vertical-align: middle;">
-            <img src="${selectedKop.logo_kanan}" style="width: 70px; height: auto; padding-right: 15px;">
-        </td>
-    </tr>
-</table>
+              <!-- KOP SURAT DENGAN PADDING AMAN -->
+            <table style="width: 100%; border-bottom: 2px solid black; padding: 0 10px 5px 10px; margin-bottom: 2px;">
+                <tr>
+                    <td style="width: 12%; text-align: left; vertical-align: middle; padding-left: 5px;">
+                        <img src="${selectedKop.logo_kiri}" style="width: 70px; height: auto;">
+                    </td>
+                    <td style="width: 76%; text-align: center; font-family: 'Times New Roman', Times, serif; line-height: 1.2;">
+                        <div style="font-size: 16px; font-weight: bold;">${selectedKop.instansi}</div>
+                        <div style="font-size: 18px; font-weight: bold;">${selectedKop.nama}</div>
+                        <div style="font-size: 14px; font-weight: bold;">${selectedKop.npsn_nss}</div>
+                        <div style="font-size: 13px;">Alamat : ${selectedKop.alamat}</div>
+                        <div style="font-size: 13px;">Email : <span style="color: blue; text-decoration: underline;">${selectedKop.email}</span></div>
+                    </td>
+                    <td style="width: 12%; text-align: right; vertical-align: middle; padding-right: 5px;">
+                        <img src="${selectedKop.logo_kanan}" style="width: 70px; height: auto;">
+                    </td>
+                </tr>
+            </table>
+            <!-- Garis ganda di bawah KOP dengan jarak margin kanan-kiri -->
+            <div style="border-top: 1px solid black; margin: 0 10px 25px 10px;"></div>
                 <div style="border-top: 1px solid black; margin-bottom: 25px;"></div>
                 
                 <div style="text-align: center; margin-bottom: 25px;">
