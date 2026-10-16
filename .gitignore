@@ -1,0 +1,11 @@
+# File sistem Windows & Mac
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Folder IDE / Editor Kode
+.vscode/
+.idea/
+
+# Log
+*.log
