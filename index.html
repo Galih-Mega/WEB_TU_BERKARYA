@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-	<link rel="stylesheet" href="style.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TU BERKARYA - Smart School System</title>
@@ -9,10 +8,13 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Pemanggilan CSS Eksternal -->
-    <link rel="stylesheet" href="css/style.css">
+    <!-- Pemanggilan CSS Eksternal (Opsi A) -->
+    <link rel="stylesheet" href="style.css">
     <!-- html2pdf.js untuk Generate PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- Firebase SDK (Compat Version) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 </head>
 <body class="h-screen w-screen flex flex-col justify-center items-center">
 
@@ -224,8 +226,22 @@
         GALIH MEGA YUNANTA - TU Berkarya System
     </div>
 
-    <!-- SCRIPT LOGIC -->
+    <!-- SCRIPT LOGIC (Firebase Config & PDF) -->
     <script>
+        // Konfigurasi Firebase Asli milik Anda
+        const firebaseConfig = {
+            apiKey: "AIzaSyChProPa4KoNjhCjt8npMg08yWWhJ5iZEw",
+            authDomain: "tu-berkarya.firebaseapp.com",
+            projectId: "tu-berkarya",
+            storageBucket: "tu-berkarya.firebasestorage.app",
+            messagingSenderId: "1041287804924",
+            appId: "1:1041287804924:web:f3227d922728389664e479"
+        };
+
+        // Inisialisasi Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
         function openModal(id) {
             document.getElementById('main-content').classList.add('opacity-0', 'pointer-events-none');
             const modal = document.getElementById(id);
@@ -288,7 +304,7 @@
             }
         };
 
-        function generatePDF(e) {
+        async function generatePDF(e) {
             e.preventDefault(); 
             
             const nama = document.getElementById('in-nama').value;
@@ -305,7 +321,37 @@
             const tk = document.getElementById('in-tk').value;
             
             const randomId = Math.floor(1000 + Math.random() * 9000);
+            const noRegistrasi = `PPDB-2026-${randomId}`;
 
+            const btn = document.getElementById('btn-submit');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Menyimpan data & membuat PDF...';
+            btn.disabled = true;
+
+            // 1. SIMPAN DATA KE FIREBASE FIRESTORE
+            try {
+                await db.collection("pendaftaran_ppdb").add({
+                    no_registrasi: noRegistrasi,
+                    nama_lengkap: nama,
+                    nik: nik,
+                    no_kk: nokk,
+                    tempat_lahir: tempat,
+                    tanggal_lahir: tgl,
+                    jenis_kelamin: jk,
+                    alamat: alamat,
+                    jalur: jalur,
+                    sekolah_tujuan: tujuan,
+                    nama_ayah: ayah,
+                    nama_ibu: ibu,
+                    asal_tk: tk,
+                    tanggal_daftar: new Date().toISOString()
+                });
+                console.log("Data berhasil tersimpan di Firebase!");
+            } catch (error) {
+                console.error("Gagal menyimpan ke Firebase: ", error);
+            }
+
+            // 2. GENERATE PDF BUKTI PENDAFTARAN
             const selectedKop = kopData[tujuan] || {
                 instansi: "PEMERINTAH KABUPATEN",
                 nama: tujuan.toUpperCase(),
@@ -350,7 +396,7 @@
                     <tr>
                         <td style="padding: 8px; width: 30%;"><strong>No. Registrasi</strong></td>
                         <td style="padding: 8px; width: 5%;">:</td>
-                        <td style="padding: 8px; width: 65%; font-weight: bold;">PPDB-2026-${randomId}</td>
+                        <td style="padding: 8px; width: 65%; font-weight: bold;">${noRegistrasi}</td>
                     </tr>
                     <tr>
                         <td style="padding: 8px;"><strong>Nama Lengkap</strong></td>
@@ -417,15 +463,10 @@
                 jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
             };
 
-            const btn = document.getElementById('btn-submit');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Sedang memproses PDF...';
-            btn.disabled = true;
-
             html2pdf().set(opt).from(pdfContainer).save().then(() => {
                 btn.innerHTML = originalText;
                 btn.disabled = false;
-                alert('Pendaftaran Berhasil! Bukti pendaftaran (PDF) berhasil diunduh.');
+                alert('Pendaftaran Berhasil! Data tersimpan di database dan bukti pendaftaran (PDF) berhasil diunduh.');
                 document.getElementById('form-ppdb').reset(); 
             });
         }
