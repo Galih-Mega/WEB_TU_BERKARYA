@@ -88,7 +88,6 @@
 
                         <!-- Tombol Aksi -->
                         <div class="flex flex-wrap gap-2">
-                            <!-- Khusus Operator LOGIN -->
                             <div class="operator-only hidden flex gap-2">
                                 <button onclick="openFormTambahMutasi()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-3 rounded-lg transition-colors text-sm shadow">
                                     <i class="fas fa-plus mr-1"></i> Tambah Data
@@ -246,12 +245,60 @@
         </div>
     </div>
 
+    <!-- MODAL PROJECT SEKOLAH (DENGAN SUB CHAT CHAT KHUSUS OPERATOR) -->
+    <div id="modal-project" class="fixed inset-0 z-50 flex justify-center items-center opacity-0 pointer-events-none transition-opacity duration-300 p-4 overflow-y-auto">
+        <div class="glass-panel w-full max-w-4xl max-h-[92vh] rounded-2xl flex flex-col relative transform scale-95 transition-transform duration-300 overflow-hidden my-auto" id="modal-project-content">
+            
+            <div class="flex justify-between items-center p-6 border-b border-gray-600">
+                <h2 class="text-3xl font-bold text-blue-400"><i class="fas fa-project-diagram mr-3"></i> PROJECT SEKOLAH</h2>
+                <button onclick="closeModal('modal-project')" class="text-gray-400 hover:text-red-500 text-3xl transition-colors"><i class="fas fa-times"></i></button>
+            </div>
+
+            <!-- Tab Sub Menu Project Sekolah -->
+            <div class="flex border-b border-gray-600 px-6 pt-4 gap-4">
+                <button onclick="switchTabProject('tab-chat')" id="btn-tab-chat" class="px-6 py-2 text-lg font-bold border-b-4 border-blue-500 text-blue-400">
+                    <i class="fas fa-comments mr-2"></i> Ruang Diskusi Operator
+                </button>
+            </div>
+
+            <div class="p-6 flex-1 flex flex-col overflow-hidden">
+                <!-- SUB 1: RUANG DISKUSI & CHAT -->
+                <div id="tab-chat" class="flex-1 flex flex-col h-[500px]">
+                    <div class="mb-3 flex justify-between items-center">
+                        <p class="text-xs text-gray-300"><i class="fas fa-info-circle text-blue-400 mr-1"></i> Ruang diskusi internal antar Operator Sekolah.</p>
+                    </div>
+
+                    <!-- Box Kontainer Chat Message -->
+                    <div id="chat-box" class="flex-1 bg-gray-900/80 border border-gray-700 rounded-xl p-4 overflow-y-auto space-y-3 mb-4 flex flex-col">
+                        <p class="text-center text-gray-400 text-sm my-auto">Memuat riwayat percakapan...</p>
+                    </div>
+
+                    <!-- Form Kirim Pesan (HANYA MUNCUL JIKA OPERATOR LOGGED IN) -->
+                    <div class="operator-only hidden">
+                        <form onsubmit="sendChatMessage(event)" class="flex gap-2">
+                            <input type="text" id="chat-input" placeholder="Tulis pesan diskusi operator di sini..." class="flex-1 bg-gray-900/90 border border-gray-600 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-blue-500" required>
+                            <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-6 py-3 rounded-xl transition-all shadow-lg text-sm flex items-center gap-2">
+                                <i class="fas fa-paper-plane"></i> Kirim
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Imbauan Jika Belum Login Operator -->
+                    <div id="chat-guest-notice" class="bg-yellow-900/30 border border-yellow-500/40 p-3 rounded-xl text-center text-xs text-yellow-300 flex items-center justify-center gap-2">
+                        <i class="fas fa-lock text-yellow-400"></i>
+                        <span>Anda dalam Mode Tamu (Membaca). Silakan <strong>Login Operator</strong> untuk ikut mengirim pesan diskusi.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL LOGIN OPERATOR -->
     <div id="modal-login" class="fixed inset-0 z-50 flex justify-center items-center opacity-0 pointer-events-none transition-opacity duration-300 p-4">
         <div class="glass-panel w-full max-w-md p-6 rounded-2xl relative transform scale-95 transition-transform duration-300 border border-blue-500/30">
             <button onclick="closeModal('modal-login')" class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl"><i class="fas fa-times"></i></button>
             <h3 class="text-2xl font-bold text-blue-400 mb-4 flex items-center gap-2"><i class="fas fa-lock"></i> Login Operator</h3>
-            <p class="text-xs text-gray-300 mb-6">Masuk untuk mengelola, mengedit, dan menambah data mutasi siswa.</p>
+            <p class="text-xs text-gray-300 mb-6">Masuk untuk mengelola, mengedit, menambah data mutasi, dan diskusi operator.</p>
             
             <form onsubmit="handleLogin(event)" class="space-y-4">
                 <div>
@@ -269,7 +316,7 @@
         </div>
     </div>
 
-    <!-- MODAL FORM INPUT/EDIT MUTASI (KHUSUS OPERATOR) -->
+    <!-- MODAL FORM INPUT/EDIT MUTASI -->
     <div id="modal-form-mutasi" class="fixed inset-0 z-50 flex justify-center items-center opacity-0 pointer-events-none transition-opacity duration-300 p-4">
         <div class="glass-panel w-full max-w-lg p-6 rounded-2xl relative transform scale-95 transition-transform duration-300 border border-blue-500/30">
             <button onclick="closeModal('modal-form-mutasi')" class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl"><i class="fas fa-times"></i></button>
@@ -315,29 +362,22 @@
             <p class="text-xl">Modul untuk aplikasi murid belum tersedia.</p>
         </div>
     </div>
-    <div id="modal-project" class="fixed inset-0 z-50 flex justify-center items-center opacity-0 pointer-events-none transition-opacity duration-300 p-4">
-        <div class="glass-panel w-full max-w-4xl p-8 rounded-2xl relative transform scale-95 transition-transform duration-300" id="modal-project-content">
-            <button onclick="closeModal('modal-project')" class="absolute top-4 right-4 text-gray-400 hover:text-white text-2xl"><i class="fas fa-times"></i></button>
-            <h2 class="text-4xl font-bold mb-4 underline decoration-white">PROJECT SEKOLAH</h2>
-            <p class="text-xl">Modul untuk project sekolah belum tersedia.</p>
-        </div>
-    </div>
 
     <!-- Footer -->
     <div class="fixed bottom-0 w-full p-4 text-center text-sm font-bold text-gray-400 bg-black/30 backdrop-blur-sm z-0">
         GALIH MEGA YUNANTA - TU Berkarya System
     </div>
 
-    <!-- SCRIPT LOGIC (Firebase Auth, Firestore, & PDF) -->
+    <!-- SCRIPT LOGIC -->
     <script>
-		const firebaseConfig = {
-			apiKey: "AIzaSyChpRoPa4KoNjhCjt8npMgO8yWWhJ5iZEw",
-			authDomain: "tu-berkarya.firebaseapp.com",
-			projectId: "tu-berkarya",
-			storageBucket: "tu-berkarya.firebasestorage.app",
-			messagingSenderId: "1041287804924",
-			appId: "1:1041287804924:web:f3227d922728389664e479"
-		};
+        const firebaseConfig = {
+            apiKey: "AIzaSyChProPa4KoNjhCjt8npMg08yWWhJ5iZEw",
+            authDomain: "tu-berkarya.firebaseapp.com",
+            projectId: "tu-berkarya",
+            storageBucket: "tu-berkarya.firebasestorage.app",
+            messagingSenderId: "1041287804924",
+            appId: "1:1041287804924:web:f3227d922728389664e479"
+        };
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
@@ -352,6 +392,7 @@
             const btnAuth = document.getElementById('btn-auth-action');
             const operatorEmail = document.getElementById('operator-email');
             const operatorElements = document.querySelectorAll('.operator-only');
+            const chatGuestNotice = document.getElementById('chat-guest-notice');
 
             if (user) {
                 window.isOperatorLoggedIn = true;
@@ -361,6 +402,7 @@
                 btnAuth.className = "bg-red-600 hover:bg-red-500 text-white font-bold text-sm py-2 px-4 rounded-full shadow-lg transition-all flex items-center gap-2";
                 
                 operatorElements.forEach(el => el.classList.remove('hidden'));
+                if(chatGuestNotice) chatGuestNotice.classList.add('hidden');
             } else {
                 window.isOperatorLoggedIn = false;
                 operatorBadge.classList.add('hidden');
@@ -368,6 +410,7 @@
                 btnAuth.className = "bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm py-2 px-4 rounded-full shadow-lg transition-all flex items-center gap-2";
                 
                 operatorElements.forEach(el => el.classList.add('hidden'));
+                if(chatGuestNotice) chatGuestNotice.classList.remove('hidden');
             }
             renderTabelMutasi(window.allMutasiData);
         });
@@ -670,9 +713,72 @@
             document.body.removeChild(link);
         }
 
+        // LOGIKA CHAT REAL-TIME DENGAN BATASAN LOGIN OPERATOR
+        function listenChatProject() {
+            const chatBox = document.getElementById('chat-box');
+            db.collection("chat_project").orderBy("waktu", "asc")
+                .onSnapshot(snapshot => {
+                    if(snapshot.empty) {
+                        chatBox.innerHTML = '<p class="text-center text-gray-400 text-sm my-auto">Belum ada diskusi operator.</p>';
+                        return;
+                    }
+                    chatBox.innerHTML = '';
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        const sender = data.nama_pengirim || 'Operator';
+                        const timeStr = data.waktu ? new Date(data.waktu.toDate()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Baru saja';
+
+                        const bubble = `
+                            <div class="p-3 rounded-lg bg-blue-900/40 border border-blue-500/40 ml-4">
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="font-bold text-xs text-blue-300 flex items-center gap-1">
+                                        <i class="fas fa-user-shield text-blue-400"></i>
+                                        ${sender}
+                                    </span>
+                                    <span class="text-[10px] text-gray-400">${timeStr}</span>
+                                </div>
+                                <p class="text-sm text-gray-100">${data.pesan}</p>
+                            </div>
+                        `;
+                        chatBox.innerHTML += bubble;
+                    });
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                }, err => {
+                    console.error("Gagal memuat chat: ", err);
+                });
+        }
+
+        async function sendChatMessage(e) {
+            e.preventDefault();
+            if (!window.isOperatorLoggedIn) {
+                alert("Akses ditolak! Hanya Operator yang sudah login yang dapat mengirim pesan.");
+                return;
+            }
+
+            const input = document.getElementById('chat-input');
+            const message = input.value.trim();
+
+            if(!message) return;
+
+            const senderName = `Operator (${auth.currentUser.email.split('@')[0]})`;
+
+            try {
+                await db.collection("chat_project").add({
+                    nama_pengirim: senderName,
+                    pesan: message,
+                    is_operator: true,
+                    waktu: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                input.value = '';
+            } catch (err) {
+                alert("Gagal mengirim pesan: " + err.message);
+            }
+        }
+
         window.addEventListener('DOMContentLoaded', () => {
             loadDaftarSekolah();
             loadMutasiSiswa();
+            listenChatProject();
         });
 
         function openModal(id) {
