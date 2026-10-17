@@ -15,6 +15,10 @@
     <!-- Firebase SDK (Compat Version) -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+	<!-- PapaParse untuk Membaca File CSV/Excel saat Import -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+	<!-- PapaParse untuk Membaca File CSV/Excel saat Import -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 </head>
 <body class="h-screen w-screen flex flex-col justify-center items-center">
 
@@ -54,11 +58,30 @@
             </div>
 
             <div class="p-6 overflow-y-auto flex-1">
-                <!-- TAB 1: MUTASI SISWA -->
+<!-- TAB 1: MUTASI SISWA -->
                 <div id="tab-mutasi" class="block animate-fade-in">
-                    <div class="bg-blue-600/20 border border-blue-500/50 p-4 rounded-xl mb-6 inline-block">
-                        <p class="text-blue-300 font-bold text-xl"><i class="fas fa-users mr-2"></i> Total Siswa Mutasi: <span id="total-mutasi" class="text-white">0 Siswa</span></p>
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                        <div class="bg-blue-600/20 border border-blue-500/50 p-4 rounded-xl inline-block">
+                            <p class="text-blue-300 font-bold text-xl"><i class="fas fa-users mr-2"></i> Total Siswa Mutasi: <span id="total-mutasi" class="text-white">0 Siswa</span></p>
+                        </div>
+                        
+                        <!-- Tombol Aksi: Download Template, Import, & Export -->
+                        <div class="flex flex-wrap gap-3">
+                            <button onclick="downloadTemplateCSV()" class="bg-yellow-600 hover:bg-yellow-500 text-white font-bold py-2 px-3 rounded-lg transition-colors shadow-lg flex items-center text-sm">
+                                <i class="fas fa-download mr-2"></i> Unduh Template Import
+                            </button>
+                            
+                            <label class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-3 rounded-lg transition-colors shadow-lg flex items-center text-sm cursor-pointer">
+                                <i class="fas fa-file-upload mr-2"></i> Impor Data (CSV)
+                                <input type="file" id="file-csv-input" accept=".csv" onchange="importDataCSV(event)" class="hidden">
+                            </label>
+
+                            <button onclick="exportTableToCSV('data_mutasi_siswa.csv')" class="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-3 rounded-lg transition-colors shadow-lg flex items-center text-sm">
+                                <i class="fas fa-file-excel mr-2"></i> Ekspor Data
+                            </button>
+                        </div>
                     </div>
+
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse">
                             <thead>
@@ -72,13 +95,13 @@
                                 </tr>
                             </thead>
                             <tbody id="tabel-mutasi-body">
-                                <!-- Data akan dimuat secara otomatis dari Firebase -->
                                 <tr>
                                     <td colspan="6" class="p-4 text-center text-gray-400">Memuat data mutasi dari database...</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
+                </div>
                 </div>
 
                 <!-- TAB 2: PPDB FORM -->
