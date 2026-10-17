@@ -12,13 +12,11 @@
     <link rel="stylesheet" href="style.css">
     <!-- html2pdf.js untuk Generate PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- PapaParse untuk Membaca File CSV/Excel saat Import -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <!-- Firebase SDK (Compat Version) -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-	<!-- PapaParse untuk Membaca File CSV/Excel saat Import -->
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-	<!-- PapaParse untuk Membaca File CSV/Excel saat Import -->
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 </head>
 <body class="h-screen w-screen flex flex-col justify-center items-center">
 
@@ -117,7 +115,6 @@
                         </table>
                     </div>
                 </div>
-                </div>
 
                 <!-- TAB 2: PPDB FORM -->
                 <div id="tab-ppdb" class="hidden animate-fade-in pb-10">
@@ -191,10 +188,6 @@
                                     <i class="fas fa-university input-icon text-yellow-400"></i>
                                     <select id="in-tujuan" class="form-input border-yellow-500/50" style="background-color: #1f2937;" required>
                                         <option value="">Pilih Sekolah Tujuan...</option>
-                                        <option value="SDN Gambirono 01">SDN Gambirono 01</option>
-                                        <option value="SDN Gambirono 02">SDN Gambirono 02</option>
-                                        <option value="SDN Gambirono 03">SDN Gambirono 03</option>
-                                        <option value="SDN Jember Lor 01">SDN Jember Lor 01</option>
                                     </select>
                                 </div>
                             </div>
@@ -260,11 +253,8 @@
         GALIH MEGA YUNANTA - TU Berkarya System
     </div>
 
-    <!-- SCRIPT LOGIC (Firebase Config & PDF) -->
-   <!-- SCRIPT LOGIC (Dinamisasi KOP dari Firebase) -->
-<!-- SCRIPT LOGIC (Dinamisasi KOP dari Firebase) -->
+    <!-- SCRIPT LOGIC -->
     <script>
-        // Konfigurasi Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyChProPa4KoNjhCjt8npMg08yWWhJ5iZEw",
             authDomain: "tu-berkarya.firebaseapp.com",
@@ -274,11 +264,11 @@
             appId: "1:1041287804924:web:f3227d922728389664e479"
         };
 
-        // Inisialisasi Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // 1. OTO-LOAD DAFTAR SEKOLAH DARI FIREBASE KE DROPDOWN PPDB
+        window.allMutasiData = [];
+
         async function loadDaftarSekolah() {
             const selectTujuan = document.getElementById('in-tujuan');
             try {
@@ -288,7 +278,7 @@
                     snapshot.forEach(doc => {
                         const data = doc.data();
                         const option = document.createElement('option');
-                        option.value = doc.id; // Menyimpan ID/Nama Sekolah
+                        option.value = doc.id;
                         option.textContent = data.nama || doc.id;
                         selectTujuan.appendChild(option);
                     });
@@ -298,8 +288,195 @@
             }
         }
 
-        // Jalankan pemuatan daftar sekolah saat halaman selesai dimuat
-        window.addEventListener('DOMContentLoaded', loadDaftarSekolah);
+        async function loadMutasiSiswa() {
+            const tbody = document.getElementById('tabel-mutasi-body');
+            try {
+                const snapshot = await db.collection("mutasi_siswa").get();
+                window.allMutasiData = [];
+                
+                if (snapshot.empty) {
+                    tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-gray-400">Belum ada data mutasi siswa.</td></tr>`;
+                    document.getElementById('total-mutasi').textContent = '0 Siswa';
+                    return;
+                }
+
+                snapshot.forEach(doc => {
+                    window.allMutasiData.push(doc.data());
+                });
+
+                renderTabelMutasi(window.allMutasiData);
+            } catch (error) {
+                console.error("Gagal memuat data mutasi: ", error);
+                tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-red-400">Gagal memuat data dari database.</td></tr>`;
+            }
+        }
+
+        function renderTabelMutasi(dataList) {
+            const tbody = document.getElementById('tabel-mutasi-body');
+            const totalSpan = document.getElementById('total-mutasi');
+            tbody.innerHTML = '';
+            
+            if (dataList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-gray-400">Tidak ada data yang sesuai dengan pencarian/filter.</td></tr>`;
+                totalSpan.textContent = '0 Siswa';
+                return;
+            }
+
+            let nomor = 1;
+            dataList.forEach(data => {
+                let warnaKeterangan = "text-green-400";
+                if(data.keterangan && data.keterangan.toLowerCase().includes('masuk')) {
+                    warnaKeterangan = "text-blue-400";
+                }
+
+                const row = `
+                    <tr class="hover:bg-white/5 transition-colors text-sm">
+                        <td class="p-3 border border-gray-700">${nomor++}</td>
+                        <td class="p-3 border border-gray-700 font-bold">${data.nama_siswa || '-'}</td>
+                        <td class="p-3 border border-gray-700">${data.tanggal_mutasi || '-'}</td>
+                        <td class="p-3 border border-gray-700">${data.asal_sekolah || '-'}</td>
+                        <td class="p-3 border border-gray-700">${data.tujuan_sekolah || '-'}</td>
+                        <td class="p-3 border border-gray-700 ${warnaKeterangan}">${data.keterangan || '-'}</td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+
+            totalSpan.textContent = dataList.length + ' Siswa';
+        }
+
+        function filterDataMutasi() {
+            const keyword = document.getElementById('search-mutasi').value.toLowerCase();
+            const filterKat = document.getElementById('filter-keterangan').value.toLowerCase();
+
+            const filtered = window.allMutasiData.filter(item => {
+                const nama = (item.nama_siswa || '').toLowerCase();
+                const asal = (item.asal_sekolah || '').toLowerCase();
+                const tujuan = (item.tujuan_sekolah || '').toLowerCase();
+                const ket = (item.keterangan || '').toLowerCase();
+
+                const matchSearch = nama.includes(keyword) || asal.includes(keyword) || tujuan.includes(keyword);
+                let matchFilter = true;
+                if(filterKat === 'masuk') matchFilter = ket.includes('masuk');
+                else if(filterKat === 'keluar') matchFilter = ket.includes('keluar');
+
+                return matchSearch && matchFilter;
+            });
+
+            renderTabelMutasi(filtered);
+        }
+
+        function downloadTemplateCSV() {
+            const templateContent = "nama_siswa,tanggal_mutasi,asal_sekolah,tujuan_sekolah,keterangan\n" +
+                                    "Ahmad Budi,12 Oktober 2026,SDN Gambirono 03,SDN Jember Lor 01,Mutasi Keluar\n" +
+                                    "Siti Aminah,15 Oktober 2026,SDN Krajan 01,SDN Gambirono 03,Mutasi Masuk";
+            
+            const blob = new Blob([templateContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = "template_import_mutasi.csv";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function importDataCSV(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            Papa.parse(file, {
+                header: true,
+                skipEmptyLines: true,
+                complete: async function(results) {
+                    const dataArray = results.data;
+                    if(dataArray.length === 0) {
+                        alert("File CSV kosong atau format tidak sesuai!");
+                        return;
+                    }
+
+                    const confirmImport = confirm(`Ditemukan ${dataArray.length} data siswa mutasi. Lanjutkan mengimpor ke Firebase?`);
+                    if(!confirmImport) {
+                        event.target.value = '';
+                        return;
+                    }
+
+                    try {
+                        let count = 0;
+                        for (let row of dataArray) {
+                            if(row.nama_siswa) {
+                                await db.collection("mutasi_siswa").add({
+                                    nama_siswa: row.nama_siswa || '',
+                                    tanggal_mutasi: row.tanggal_mutasi || '',
+                                    asal_sekolah: row.asal_sekolah || '',
+                                    tujuan_sekolah: row.tujuan_sekolah || '',
+                                    keterangan: row.keterangan || 'Mutasi',
+                                    tanggal_input: new Date().toISOString()
+                                });
+                                count++;
+                            }
+                        }
+                        alert(`Berhasil mengimpor ${count} data siswa mutasi ke Firebase!`);
+                        loadMutasiSiswa();
+                    } catch (error) {
+                        console.error("Gagal mengimpor data:", error);
+                        alert("Terjadi kesalahan saat menyimpan data ke database.");
+                    }
+                    event.target.value = '';
+                },
+                error: function(error) {
+                    console.error("Gagal membaca file CSV:", error);
+                    alert("Gagal membaca file. Pastikan format berjenis .csv");
+                }
+            });
+        }
+
+        function exportFilteredDataToCSV() {
+            const keyword = document.getElementById('search-mutasi').value.toLowerCase();
+            const filterKat = document.getElementById('filter-keterangan').value.toLowerCase();
+
+            const dataToExport = window.allMutasiData.filter(item => {
+                const nama = (item.nama_siswa || '').toLowerCase();
+                const asal = (item.asal_sekolah || '').toLowerCase();
+                const tujuan = (item.tujuan_sekolah || '').toLowerCase();
+                const ket = (item.keterangan || '').toLowerCase();
+
+                const matchSearch = nama.includes(keyword) || asal.includes(keyword) || tujuan.includes(keyword);
+                let matchFilter = true;
+                if(filterKat === 'masuk') matchFilter = ket.includes('masuk');
+                else if(filterKat === 'keluar') matchFilter = ket.includes('keluar');
+
+                return matchSearch && matchFilter;
+            });
+
+            if(dataToExport.length === 0) {
+                alert("Tidak ada data yang dapat diekspor berdasarkan pencarian/filter saat ini.");
+                return;
+            }
+
+            let csvContent = "No,Nama Siswa,Tanggal Mutasi,Asal Sekolah,Tujuan Sekolah,Keterangan\n";
+            dataToExport.forEach((row, index) => {
+                const cleanNama = `"${(row.nama_siswa || '').replace(/,/g, ";")}"`;
+                const cleanTgl = `"${(row.tanggal_mutasi || '').replace(/,/g, ";")}"`;
+                const cleanAsal = `"${(row.asal_sekolah || '').replace(/,/g, ";")}"`;
+                const cleanTujuan = `"${(row.tujuan_sekolah || '').replace(/,/g, ";")}"`;
+                const cleanKet = `"${(row.keterangan || '').replace(/,/g, ";")}"`;
+
+                csvContent += `${index + 1},${cleanNama},${cleanTgl},${cleanAsal},${cleanTujuan},${cleanKet}\n`;
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `rekap_mutasi_terfiltrasi_${new Date().toISOString().slice(0,10)}.csv`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            loadDaftarSekolah();
+            loadMutasiSiswa();
+        });
 
         function openModal(id) {
             document.getElementById('main-content').classList.add('opacity-0', 'pointer-events-none');
@@ -356,7 +533,6 @@
             btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Mengambil data KOP & membuat PDF...';
             btn.disabled = true;
 
-            // 1. AMBIL DATA KOP SEKOLAH DARI FIREBASE FIRESTORE
             let selectedKop = {
                 instansi: "PEMERINTAH KABUPATEN JEMBER",
                 nama: tujuan.toUpperCase(),
@@ -373,10 +549,9 @@
                     selectedKop = sekolahDoc.data();
                 }
             } catch (err) {
-                console.warn("Gagal mengambil data KOP dari Firebase, menggunakan fallback:", err);
+                console.warn("Gagal mengambil data KOP dari Firebase:", err);
             }
 
-            // 2. SIMPAN DATA PENDAFTARAN KE FIREBASE FIRESTORE
             try {
                 await db.collection("pendaftaran_ppdb").add({
                     no_registrasi: noRegistrasi,
@@ -398,7 +573,6 @@
                 console.error("Gagal menyimpan ke Firebase: ", error);
             }
 
-            // 3. GENERATE PDF BUKTI PENDAFTARAN
             const pdfContainer = document.createElement('div');
             pdfContainer.style.width = '800px';
             pdfContainer.style.padding = '40px';
@@ -407,27 +581,24 @@
             pdfContainer.style.fontFamily = 'Arial, sans-serif';
 
             pdfContainer.innerHTML = `
-              <!-- KOP SURAT DENGAN PADDING AMAN -->
-           <table style="width: 100%; border-bottom: 3px solid black; padding-bottom: 5px; margin-bottom: 2px;">
+                <table style="width: 100%; border-bottom: 2px solid black; padding: 0 10px 5px 10px; margin-bottom: 2px;">
                     <tr>
-                        <td style="width: 15%; text-align: center; vertical-align: middle;">
-                            <img src="${selectedKop.logo_kiri}" style="width: 75px; height: auto;">
+                        <td style="width: 12%; text-align: left; vertical-align: middle; padding-left: 5px;">
+                            <img src="${selectedKop.logo_kiri}" style="width: 70px; height: auto;">
                         </td>
-                        <td style="width: 70%; text-align: center; font-family: 'Times New Roman', Times, serif; line-height: 1.2;">
+                        <td style="width: 76%; text-align: center; font-family: 'Times New Roman', Times, serif; line-height: 1.2;">
                             <div style="font-size: 16px; font-weight: bold;">${selectedKop.instansi}</div>
                             <div style="font-size: 18px; font-weight: bold;">${selectedKop.nama}</div>
                             <div style="font-size: 14px; font-weight: bold;">${selectedKop.npsn_nss}</div>
                             <div style="font-size: 13px;">Alamat : ${selectedKop.alamat}</div>
                             <div style="font-size: 13px;">Email : <span style="color: blue; text-decoration: underline;">${selectedKop.email}</span></div>
                         </td>
-                        <td style="width: 15%; text-align: center; vertical-align: middle;">
-                            <img src="${selectedKop.logo_kanan}" style="width: 75px; height: auto;">
+                        <td style="width: 12%; text-align: right; vertical-align: middle; padding-right: 5px;">
+                            <img src="${selectedKop.logo_kanan}" style="width: 70px; height: auto;">
                         </td>
                     </tr>
                 </table>
-            <!-- Garis ganda di bawah KOP dengan jarak margin kanan-kiri -->
-            <div style="border-top: 1px solid black; margin: 0 10px 25px 10px;"></div>
-                <div style="border-top: 1px solid black; margin-bottom: 25px;"></div>
+                <div style="border-top: 1px solid black; margin: 0 10px 25px 10px;"></div>
                 
                 <div style="text-align: center; margin-bottom: 25px;">
                     <h2 style="margin: 0; font-size: 18px; font-family: 'Times New Roman', Times, serif; font-weight: bold; text-decoration: underline;">BUKTI PENDAFTARAN PESERTA DIDIK BARU</h2>
