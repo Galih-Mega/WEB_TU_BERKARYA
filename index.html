@@ -58,34 +58,49 @@
             </div>
 
             <div class="p-6 overflow-y-auto flex-1">
-<!-- TAB 1: MUTASI SISWA -->
+				<!-- TAB 1: MUTASI SISWA -->
                 <div id="tab-mutasi" class="block animate-fade-in">
-                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-                        <div class="bg-blue-600/20 border border-blue-500/50 p-4 rounded-xl inline-block">
-                            <p class="text-blue-300 font-bold text-xl"><i class="fas fa-users mr-2"></i> Total Siswa Mutasi: <span id="total-mutasi" class="text-white">0 Siswa</span></p>
+                    <!-- Baris Kontrol: Info Total, Search, Filter, & Tombol Aksi -->
+                    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 gap-4">
+                        <div class="bg-blue-600/20 border border-blue-500/50 p-3 rounded-xl inline-block">
+                            <p class="text-blue-300 font-bold text-lg"><i class="fas fa-users mr-2"></i> Total Siswa Mutasi: <span id="total-mutasi" class="text-white">0 Siswa</span></p>
                         </div>
                         
-                        <!-- Tombol Aksi: Download Template, Import, & Export -->
-                        <div class="flex flex-wrap gap-3">
+                        <!-- Kolom Pencarian & Filter -->
+                        <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+                            <div class="relative flex-1 lg:w-64">
+                                <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                <input type="text" id="search-mutasi" placeholder="Cari nama siswa / sekolah..." onkeyup="filterDataMutasi()" class="w-full bg-gray-900/60 border border-gray-600 text-white text-sm rounded-lg pl-9 pr-3 py-2 outline-none focus:border-blue-500">
+                            </div>
+                            
+                            <select id="filter-keterangan" onchange="filterDataMutasi()" class="bg-gray-900/60 border border-gray-600 text-white text-sm rounded-lg px-3 py-2 outline-none focus:border-blue-500">
+                                <option value="">Semua Keterangan</option>
+                                <option value="masuk">Mutasi Masuk</option>
+                                <option value="keluar">Mutasi Keluar</option>
+                            </select>
+                        </div>
+
+                        <!-- Tombol Aksi: Template, Impor, & Ekspor Terfiltrasi -->
+                        <div class="flex flex-wrap gap-2">
                             <button onclick="downloadTemplateCSV()" class="bg-yellow-600 hover:bg-yellow-500 text-white font-bold py-2 px-3 rounded-lg transition-colors shadow-lg flex items-center text-sm">
-                                <i class="fas fa-download mr-2"></i> Unduh Template Import
+                                <i class="fas fa-download mr-2"></i> Template
                             </button>
                             
                             <label class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-3 rounded-lg transition-colors shadow-lg flex items-center text-sm cursor-pointer">
-                                <i class="fas fa-file-upload mr-2"></i> Impor Data (CSV)
+                                <i class="fas fa-file-upload mr-2"></i> Impor
                                 <input type="file" id="file-csv-input" accept=".csv" onchange="importDataCSV(event)" class="hidden">
                             </label>
 
-                            <button onclick="exportTableToCSV('data_mutasi_siswa.csv')" class="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-3 rounded-lg transition-colors shadow-lg flex items-center text-sm">
-                                <i class="fas fa-file-excel mr-2"></i> Ekspor Data
+                            <button onclick="exportFilteredDataToCSV()" class="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-3 rounded-lg transition-colors shadow-lg flex items-center text-sm">
+                                <i class="fas fa-file-excel mr-2"></i> Ekspor Hasil Filter
                             </button>
                         </div>
                     </div>
 
                     <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse">
+                        <table class="w-full text-left border-collapse" id="tabel-mutasi-data">
                             <thead>
-                                <tr class="bg-gray-800/50 text-blue-300">
+                                <tr class="bg-gray-800/50 text-blue-300 text-sm">
                                     <th class="p-3 border border-gray-600 rounded-tl-lg">No</th>
                                     <th class="p-3 border border-gray-600">Nama Siswa</th>
                                     <th class="p-3 border border-gray-600">Tanggal Mutasi</th>
